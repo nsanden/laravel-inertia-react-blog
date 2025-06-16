@@ -1,0 +1,32 @@
+{
+    "name": "nsanden/laravel-inertia-react-blog",
+    "description": "A simple blog package for Laravel with React/Inertia.js",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["laravel", "react", "inertia", "blog", "package"],
+    "homepage": "https://github.com/nsanden/laravel-inertia-react-blog",
+    "authors": [
+        {
+            "name": "Nate Sanden"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "NSanden\\LaravelInertiaReactBlog\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.1",
+        "laravel/framework": "^10.0",
+        "inertiajs/inertia-laravel": "^0.6"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "NSanden\\LaravelInertiaReactBlog\\BlogServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
