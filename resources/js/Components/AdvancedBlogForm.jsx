@@ -62,9 +62,9 @@ export default function AdvancedBlogForm({ post = null, authors = [], onCancel }
         e.preventDefault();
         
         if (isEditing) {
-            put(route('admin.blog.update', post));
+            put(route('blog-admin.update', post));
         } else {
-            submitPost(route('admin.blog.store'));
+            submitPost(route('blog-admin.store'));
         }
     };
 

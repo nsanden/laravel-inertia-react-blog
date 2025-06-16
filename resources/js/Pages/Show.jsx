@@ -107,7 +107,7 @@ export default function Show({ post }) {
                             {auth?.user?.is_admin && (
                                 <div className="flex justify-center mb-6">
                                     <Link
-                                        href={route('admin.blog.edit', post)}
+                                        href={route('blog-admin.edit', post)}
                                         className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition text-sm"
                                     >
                                         <i className="fas fa-edit"></i>

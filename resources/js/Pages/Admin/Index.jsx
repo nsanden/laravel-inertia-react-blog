@@ -16,7 +16,7 @@ export default function BlogIndex({ auth, posts }) {
                             <div className="flex justify-between items-center mb-6">
                                 <h1 className="text-2xl font-bold">Blog Posts</h1>
                                 <Link
-                                    href={route('admin.blog.create')}
+                                    href={route('blog-admin.create')}
                                     className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
                                 >
                                     Create New Post
@@ -69,7 +69,7 @@ export default function BlogIndex({ auth, posts }) {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                     <Link
-                                                        href={route('admin.blog.edit', post)}
+                                                        href={route('blog-admin.edit', post)}
                                                         className="text-indigo-600 hover:text-indigo-900 mr-4"
                                                     >
                                                         Edit

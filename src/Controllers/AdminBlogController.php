@@ -70,7 +70,7 @@ class AdminBlogController extends Controller
 
         BlogPost::create($validated);
 
-        return redirect()->route('admin.blog.index');
+        return redirect()->route('blog-admin.index');
     }
 
     public function edit(BlogPost $blogPost)
@@ -114,13 +114,13 @@ class AdminBlogController extends Controller
 
         $blogPost->update($validated);
 
-        return redirect()->route('admin.blog.index');
+        return redirect()->route('blog-admin.index');
     }
 
     public function destroy(BlogPost $blogPost)
     {
         $blogPost->delete();
 
-        return redirect()->route('admin.blog.index');
+        return redirect()->route('blog-admin.index');
     }
 }

@@ -32,7 +32,7 @@ export default function Index({ posts }) {
                         <p className="text-lg md:text-xl text-gray-600 mb-10">Latest articles, insights, and expert advice</p>
                         {auth?.user?.is_admin && (
                             <Link
-                                href={route('admin.blog.create')}
+                                href={route('blog-admin.create')}
                                 className="mb-10 inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition-colors font-medium"
                                 title="Create new blog post"
                             >
