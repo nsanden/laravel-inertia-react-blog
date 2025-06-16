@@ -19,7 +19,17 @@ class BlogServiceProvider extends ServiceProvider
         // Load migrations
         $this->loadMigrationsFrom(__DIR__.'/database/migrations');
         
-        // Publish assets
+        // Publish pages to main Pages directory
+        $this->publishes([
+            __DIR__.'/../resources/js/Pages' => resource_path('js/Pages'),
+        ], 'laravel-inertia-react-blog-pages');
+
+        // Publish components to vendor directory (for customization)
+        $this->publishes([
+            __DIR__.'/../resources/js/Components' => resource_path('js/vendor/laravel-inertia-react-blog/Components'),
+        ], 'laravel-inertia-react-blog-components');
+
+        // Publish all assets (pages + components)
         $this->publishes([
             __DIR__.'/../resources/js' => resource_path('js/vendor/laravel-inertia-react-blog'),
         ], 'laravel-inertia-react-blog-assets');
