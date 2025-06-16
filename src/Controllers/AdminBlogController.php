@@ -21,7 +21,7 @@ class AdminBlogController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('Admin/Index', [
+        return Inertia::render('Blog/Admin/Index', [
             'posts' => $posts
         ]);
     }
@@ -36,7 +36,7 @@ class AdminBlogController extends Controller
             $authors = BlogAuthor::all();
         }
 
-        return Inertia::render('Admin/Create', [
+        return Inertia::render('Blog/Admin/Create', [
             'authors' => $authors
         ]);
     }
@@ -77,7 +77,7 @@ class AdminBlogController extends Controller
     {
         $authors = BlogAuthor::all();
 
-        return Inertia::render('Admin/Edit', [
+        return Inertia::render('Blog/Admin/Edit', [
             'post' => $blogPost,
             'authors' => $authors
         ]);
