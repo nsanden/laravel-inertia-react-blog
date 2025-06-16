@@ -15,7 +15,7 @@ class BlogController extends Controller
             ->orderBy('published_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('Blog/Index', [
+        return Inertia::render('Index', [
             'posts' => $posts
         ]);
     }
@@ -29,7 +29,7 @@ class BlogController extends Controller
 
         $blogPost->load('author');
 
-        return Inertia::render('Blog/Show', [
+        return Inertia::render('Show', [
             'post' => $blogPost
         ]);
     }
