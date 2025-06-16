@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import AdvancedBlogForm from '../../../Components/AdvancedBlogForm';
+import AdvancedBlogForm from '@/Components/Blog/AdvancedBlogForm';
 import { Head } from '@inertiajs/react';
 
 export default function BlogCreate({ auth, authors }) {

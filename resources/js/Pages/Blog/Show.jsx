@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import BlogHeader from '../Components/BlogHeader';
+import BlogHeader from '@/Components/Blog/BlogHeader';
 
 export default function Show({ post }) {
     const { auth } = usePage().props;

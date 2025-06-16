@@ -1,6 +1,6 @@
 import { useForm, usePage } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
-import ImageSearchModal from './ImageSearchModal';
+import ImageSearchModal from '@/Components/Blog/ImageSearchModal';
 
 export default function AdvancedBlogForm({ post = null, authors = [], onCancel }) {
     const isEditing = !!post;

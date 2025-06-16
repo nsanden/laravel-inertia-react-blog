@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import BlogAuthor from '../Components/BlogAuthor';
+import BlogAuthor from '@/Components/Blog/BlogAuthor';
 
 export default function Index({ posts }) {
     const { auth } = usePage().props;
