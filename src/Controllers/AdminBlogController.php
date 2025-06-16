@@ -45,13 +45,27 @@ class AdminBlogController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:blog_posts,slug',
             'content' => 'required|string',
+            'excerpt' => 'nullable|string',
+            'featured_image' => 'nullable|url',
             'author_id' => 'required|exists:blog_authors,id',
-            'is_published' => 'boolean',
+            'status' => 'required|in:draft,published',
+            'published_at' => 'nullable|date',
         ]);
 
-        if ($validated['is_published']) {
+        // Convert status to boolean
+        $validated['is_published'] = $validated['status'] === 'published';
+        unset($validated['status']);
+
+        // Set published_at if publishing for the first time
+        if ($validated['is_published'] && empty($validated['published_at'])) {
             $validated['published_at'] = now();
+        }
+
+        // Generate slug if not provided
+        if (empty($validated['slug'])) {
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['title']);
         }
 
         BlogPost::create($validated);
@@ -73,15 +87,29 @@ class AdminBlogController extends Controller
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:blog_posts,slug,' . $blogPost->id,
             'content' => 'required|string',
+            'excerpt' => 'nullable|string',
+            'featured_image' => 'nullable|url',
             'author_id' => 'required|exists:blog_authors,id',
-            'is_published' => 'boolean',
+            'status' => 'required|in:draft,published',
+            'published_at' => 'nullable|date',
         ]);
 
-        if ($validated['is_published'] && !$blogPost->is_published) {
+        // Convert status to boolean
+        $validated['is_published'] = $validated['status'] === 'published';
+        unset($validated['status']);
+
+        // Set published_at if publishing for the first time
+        if ($validated['is_published'] && !$blogPost->is_published && empty($validated['published_at'])) {
             $validated['published_at'] = now();
         } elseif (!$validated['is_published']) {
             $validated['published_at'] = null;
+        }
+
+        // Generate slug if not provided
+        if (empty($validated['slug'])) {
+            $validated['slug'] = \Illuminate\Support\Str::slug($validated['title']);
         }
 
         $blogPost->update($validated);

@@ -1,6 +1,6 @@
 {
     "name": "nsanden/laravel-inertia-react-blog",
-    "description": "A simple blog package for Laravel with React/Inertia.js",
+    "description": "An advanced blog package for Laravel with React/Inertia.js featuring markdown support, image search, and live preview",
     "type": "library",
     "license": "MIT",
     "keywords": ["laravel", "react", "inertia", "blog", "package"],

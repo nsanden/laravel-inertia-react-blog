@@ -1,15 +1,41 @@
-# Laravel Inertia React Blog
+# Laravel Inertia React Blog v2.0
 
-A minimal blog package for Laravel with React/Inertia.js support.
+An advanced blog package for Laravel with React/Inertia.js featuring comprehensive content management and modern editing capabilities.
 
 ## Features
 
-- Simple blog post management (title, content, author)
-- Public blog listing and single post views
-- Admin CRUD interface
+### Content Management
+- Advanced markdown editor with live preview
+- Rich text formatting (bold, italic, headers, links, lists, code blocks, quotes)
+- Split-screen editing with real-time preview
+- Click-to-edit paragraph functionality
+- Excerpt and featured image support
+- Slug generation and editing
+- Publish date/time scheduling
+
+### Image Management
+- Unsplash API integration for high-quality stock images
+- Search and insert images directly into content
+- Featured image support with preview
+- Image replacement functionality
+- Auto-attribution for Unsplash images
+
+### Advanced UI/UX
+- Beautiful, responsive design with modern styling
+- Featured post display on blog index
+- Grid layout for recent posts
+- Social sharing buttons (Twitter, LinkedIn, Facebook)
+- Breadcrumb navigation
+- Draft/Published status indicators
+- Admin edit buttons for authenticated users
+
+### Technical Features
+- Comprehensive markdown rendering
+- Advanced form validation and error handling
+- Clean component architecture
+- SEO-friendly URLs with slugs
 - Author management with user linking
-- Draft/Published status
-- Clean, minimal UI without icons or complex features
+- Pagination support
 
 ## Installation
 
@@ -88,14 +114,14 @@ To publish this package to GitHub:
 
 ## Development
 
-This is a minimal "hello world" version. Future enhancements could include:
+This version (2.0) represents a major upgrade from the minimal v1.0, adding all the advanced features mentioned above. Future enhancements could include:
 
-- Markdown support
-- Image handling
-- Categories/tags
-- SEO features
-- Advanced editor
-- Caching
+- Categories/tags system
+- Comment system
+- Advanced SEO features
+- Content caching
+- Multi-language support
+- Email newsletter integration
 
 ## License
 

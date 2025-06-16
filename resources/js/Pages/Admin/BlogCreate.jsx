@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import SimpleBlogForm from '../../../Components/SimpleBlogForm';
+import AdvancedBlogForm from '../../../Components/AdvancedBlogForm';
 import { Head } from '@inertiajs/react';
 
 export default function BlogCreate({ auth, authors }) {
@@ -12,7 +12,7 @@ export default function BlogCreate({ auth, authors }) {
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <SimpleBlogForm authors={authors} />
+                    <AdvancedBlogForm authors={authors} />
                 </div>
             </div>
         </AuthenticatedLayout>
