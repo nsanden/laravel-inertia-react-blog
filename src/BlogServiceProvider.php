@@ -16,21 +16,14 @@ class BlogServiceProvider extends ServiceProvider
         // Load migrations
         $this->loadMigrationsFrom(__DIR__.'/database/migrations');
         
-        // Load routes
-        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
-        
-        // Publish assets to namespaced folders
+        // Publish assets and routes together
         $this->publishes([
             __DIR__.'/../resources/js/Pages' => resource_path('js/Pages/Blog'),
             __DIR__.'/../resources/js/Components' => resource_path('js/Components/Blog'),
             __DIR__.'/../resources/js/Layouts' => resource_path('js/Layouts/Blog'),
             __DIR__.'/../node_modules/@fortawesome/fontawesome-free/css/all.min.css' => public_path('css/fontawesome.css'),
             __DIR__.'/../node_modules/@fortawesome/fontawesome-free/webfonts' => public_path('webfonts'),
-        ], 'laravel-inertia-react-blog');
-
-        // Publish the routes file (optional, for customization)
-        $this->publishes([
             __DIR__.'/../routes/web.php' => base_path('routes/blog.php'),
-        ], 'laravel-inertia-react-blog-routes');
+        ], 'laravel-inertia-react-blog');
     }
 }
