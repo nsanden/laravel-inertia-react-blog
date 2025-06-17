@@ -20,6 +20,7 @@ class BlogServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../resources/js/Pages' => resource_path('js/Pages/Blog'),
             __DIR__.'/../resources/js/Components' => resource_path('js/Components/Blog'),
+            __DIR__.'/../resources/js/Layouts' => resource_path('js/Layouts/Blog'),
         ], 'laravel-inertia-react-blog');
 
         // Publish the routes file

@@ -1,5 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import BlogAuthor from '@/Components/Blog/BlogAuthor';
+import BlogLayout from '@/Layouts/Blog/BlogLayout';
 
 export default function Index({ posts }) {
     const { auth } = usePage().props;
@@ -21,7 +22,7 @@ export default function Index({ posts }) {
     };
 
     return (
-        <>
+        <BlogLayout>
             <Head title="Blog" />
             
             {/* Hero Section */}
@@ -189,6 +190,6 @@ export default function Index({ posts }) {
                     </div>
                 </section>
             )}
-        </>
+        </BlogLayout>
     );
 }

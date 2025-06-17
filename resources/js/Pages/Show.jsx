@@ -1,5 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import BlogHeader from '@/Components/Blog/BlogHeader';
+import BlogLayout from '@/Layouts/Blog/BlogLayout';
 
 export default function Show({ post }) {
     const { auth } = usePage().props;
@@ -66,7 +67,7 @@ export default function Show({ post }) {
     };
 
     return (
-        <>
+        <BlogLayout>
             <Head title={post.title} />
             
             {/* Header */}
@@ -194,6 +195,6 @@ export default function Show({ post }) {
                     </div>
                 </div>
             </section>
-        </>
+        </BlogLayout>
     );
 }
