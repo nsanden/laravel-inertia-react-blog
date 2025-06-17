@@ -1,13 +1,15 @@
 import { Head, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import BlogLayout from '@/Layouts/Blog/BlogLayout';
 
 export default function BlogIndex({ auth, posts }) {
     return (
-        <AuthenticatedLayout
-            user={auth.user}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Blog Posts</h2>}
-        >
-            <Head title="Blog Posts" />
+        <BlogLayout>
+            <AuthenticatedLayout
+                user={auth.user}
+                header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Blog Posts</h2>}
+            >
+                <Head title="Blog Posts" />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -90,6 +92,7 @@ export default function BlogIndex({ auth, posts }) {
                     </div>
                 </div>
             </div>
-        </AuthenticatedLayout>
+            </AuthenticatedLayout>
+        </BlogLayout>
     );
 }
