@@ -18,38 +18,38 @@ export default function Show({ post }) {
         if (!text) return '';
         
         let html = text
-            // Headers
-            .replace(/^### (.*$)/gim, '<h3 style="font-size: 1.5rem; font-weight: 600; color: #1f2937; margin: 2.5rem 0 1rem 0; line-height: 1.4;">$1</h3>')
-            .replace(/^## (.*$)/gim, '<h2 style="font-size: 2rem; font-weight: 700; color: #1f2937; margin: 3rem 0 1.5rem 0; line-height: 1.3;">$1</h2>')
-            .replace(/^# (.*$)/gim, '<h1 style="font-size: 2.5rem; font-weight: 700; color: #1f2937; margin: 2rem 0 1.5rem 0; line-height: 1.2;">$1</h1>')
+            // Headers - Improved typography with better sizes and spacing
+            .replace(/^### (.*$)/gim, '<h3 style="font-size: 1.875rem; font-weight: 700; color: #111827; margin: 3rem 0 1.5rem 0; line-height: 1.3; letter-spacing: -0.025em;">$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2 style="font-size: 2.25rem; font-weight: 800; color: #111827; margin: 4rem 0 2rem 0; line-height: 1.25; letter-spacing: -0.025em;">$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1 style="font-size: 3rem; font-weight: 900; color: #111827; margin: 3rem 0 2rem 0; line-height: 1.2; letter-spacing: -0.025em;">$1</h1>')
             // Bold and italic
-            .replace(/\*\*([^*]+)\*\*/g, '<strong style="font-weight: 600; color: #1f2937;">$1</strong>')
-            .replace(/\*([^*]+)\*/g, '<em style="font-style: italic;">$1</em>')
+            .replace(/\*\*([^*]+)\*\*/g, '<strong style="font-weight: 700; color: #111827;">$1</strong>')
+            .replace(/\*([^*]+)\*/g, '<em style="font-style: italic; color: #374151;">$1</em>')
             // Images (must come before links since ![alt](url) contains [alt](url))
-            .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="width: 100%; height: auto; border-radius: 0.75rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); margin: 2.375rem auto; display: block;" />')
+            .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="width: 100%; height: auto; border-radius: 0.75rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); margin: 3rem auto; display: block;" />')
             // Links
-            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color: #2563eb; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px;">$1</a>')
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color: #2563eb; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; font-weight: 500;">$1</a>')
             // Code blocks
-            .replace(/```([^`]*)```/g, '<pre style="background-color: #1e293b; color: #e2e8f0; padding: 1.5rem; border-radius: 0.75rem; overflow-x: auto; margin: 2rem 0; font-family: ui-monospace, SFMono-Regular, \'SF Mono\', Consolas, \'Liberation Mono\', Menlo, monospace;"><code>$1</code></pre>')
+            .replace(/```([^`]*)```/g, '<pre style="background-color: #1e293b; color: #e2e8f0; padding: 1.5rem; border-radius: 0.75rem; overflow-x: auto; margin: 2.5rem 0; font-family: ui-monospace, SFMono-Regular, \'SF Mono\', Consolas, \'Liberation Mono\', Menlo, monospace; font-size: 0.875rem; line-height: 1.5;"><code>$1</code></pre>')
             // Inline code
             .replace(/`([^`]+)`/g, '<code style="background-color: #f1f5f9; color: #1e293b; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-family: ui-monospace, SFMono-Regular, \'SF Mono\', Consolas, \'Liberation Mono\', Menlo, monospace; font-size: 0.875rem;">$1</code>')
             // Blockquotes
-            .replace(/^> (.*$)/gim, '<blockquote style="border-left: 4px solid #3b82f6; padding: 1rem 0 1rem 2rem; margin: 2rem 0; font-style: italic; color: #6b7280; background-color: #f8fafc; border-radius: 0 0.5rem 0.5rem 0;">$1</blockquote>')
+            .replace(/^> (.*$)/gim, '<blockquote style="border-left: 4px solid #3b82f6; padding: 1.5rem 0 1.5rem 2rem; margin: 2.5rem 0; font-style: italic; color: #6b7280; background-color: #f8fafc; border-radius: 0 0.5rem 0.5rem 0; font-size: 1.125rem; line-height: 1.7;">$1</blockquote>')
             .split('\n')
             .map(line => {
                 if (line.trim().startsWith('- ')) {
-                    return `<li style="margin-bottom: 0.75rem; color: #374151; line-height: 1.6;">${line.substring(2)}</li>`;
+                    return `<li style="margin-bottom: 0.75rem; color: #374151; line-height: 1.75; font-size: 1.125rem;">${line.substring(2)}</li>`;
                 } else if (line.trim().match(/^\d+\. /)) {
-                    return `<li style="margin-bottom: 0.75rem; color: #374151; line-height: 1.6;">${line.replace(/^\d+\. /, '')}</li>`;
+                    return `<li style="margin-bottom: 0.75rem; color: #374151; line-height: 1.75; font-size: 1.125rem;">${line.replace(/^\d+\. /, '')}</li>`;
                 }
                 return line;
             })
             .join('\n')
             .replace(/(<li style="[^"]*">.*<\/li>\n?)+/g, match => {
                 if (match.includes('- ')) {
-                    return `<ul style="margin: 1.5rem 0; padding-left: 2rem;">${match}</ul>`;
+                    return `<ul style="margin: 2rem 0; padding-left: 2rem; list-style-type: disc;">${match}</ul>`;
                 }
-                return `<ol style="margin: 1.5rem 0; padding-left: 2rem;">${match}</ol>`;
+                return `<ol style="margin: 2rem 0; padding-left: 2rem; list-style-type: decimal;">${match}</ol>`;
             })
             .split('\n\n')
             .map((para, index) => {
@@ -59,7 +59,7 @@ export default function Show({ post }) {
                     para.includes('<pre') || para.includes('<img')) {
                     return para;
                 }
-                return `<p style="font-size: 1.125rem; line-height: 1.75; color: #374151; margin-bottom: 1.75rem;">${para}</p>`;
+                return `<p style="font-size: 1.25rem; line-height: 1.8; color: #374151; margin-bottom: 2rem; font-weight: 400;">${para}</p>`;
             })
             .join('\n');
             
