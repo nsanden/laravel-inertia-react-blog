@@ -1,6 +1,8 @@
 import { useForm, usePage } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
 import ImageSearchModal from '@/Components/Blog/ImageSearchModal';
+import MarkdownRenderer from '@/Components/Blog/MarkdownRenderer';
+import BlogHeader from '@/Components/Blog/BlogHeader';
 
 export default function AdvancedBlogForm({ post = null, authors = [], onCancel }) {
     const isEditing = !!post;
@@ -413,35 +415,26 @@ export default function AdvancedBlogForm({ post = null, authors = [], onCancel }
             {/* Preview Column */}
             <div className="flex-1">
                 <div className="bg-white rounded-lg shadow-lg p-8 sticky top-8">
-                    <div className="mb-6">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">{data.title || 'Blog Post Title'}</h1>
-                        <div className="text-gray-600">
-                            {authors?.find(author => author.id == data.author_id)?.name || 'Author'} • {new Date(data.published_at).toLocaleDateString()}
-                        </div>
-                        {data.status === 'draft' && (
-                            <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full mt-2">
-                                DRAFT
-                            </span>
-                        )}
-                    </div>
+                    <BlogHeader
+                        title={data.title || 'Blog Post Title'}
+                        subtitle=""
+                        author={authors?.find(author => author.id == data.author_id) || { name: 'Author' }}
+                        publishedAt={data.published_at}
+                        featuredImage={data.featured_image}
+                        showFeaturedImage={true}
+                    />
                     
-                    {data.featured_image && (
-                        <div className="mb-6">
-                            <img
-                                src={data.featured_image}
-                                alt="Featured image"
-                                className="w-full h-48 object-cover rounded-lg"
-                                onError={(e) => {
-                                    e.target.style.display = 'none';
-                                }}
-                            />
-                        </div>
+                    {data.status === 'draft' && (
+                        <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full mb-6">
+                            DRAFT
+                        </span>
                     )}
                     
-                    <div 
-                        className="prose prose-lg max-w-none"
-                        dangerouslySetInnerHTML={{ __html: renderMarkdown(data.content) || '<p class="text-gray-400">Start typing to see preview...</p>' }}
-                    />
+                    {data.content ? (
+                        <MarkdownRenderer content={data.content} />
+                    ) : (
+                        <p className="text-gray-400">Start typing to see preview...</p>
+                    )}
                 </div>
             </div>
 

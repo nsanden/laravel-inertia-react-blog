@@ -24,7 +24,7 @@ export default function BlogHeader({
     const authorTitle = author?.title || 'Author';
 
     return (
-        <div className="mb-8">
+        <div className="mb-16">
             {showFeaturedImage && featuredImage && (
                 <img
                     src={featuredImage}

@@ -13,7 +13,7 @@ export default function BlogCreate({ auth, authors }) {
                 <Head title="Create Blog Post" />
 
                 <div className="py-12">
-                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="max-w-[90%] mx-auto sm:px-6 lg:px-8">
                         <AdvancedBlogForm authors={authors} />
                     </div>
                 </div>

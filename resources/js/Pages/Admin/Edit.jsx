@@ -13,7 +13,7 @@ export default function BlogEdit({ auth, post, authors }) {
                 <Head title="Edit Blog Post" />
 
                 <div className="py-12">
-                    <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="max-w-[90%] mx-auto sm:px-6 lg:px-8">
                         <AdvancedBlogForm post={post} authors={authors} />
                     </div>
                 </div>
