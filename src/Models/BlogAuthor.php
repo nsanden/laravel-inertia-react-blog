@@ -14,6 +14,7 @@ class BlogAuthor extends Model
         'name',
         'title',
         'user_id',
+        'avatar_url',
     ];
 
     public function posts()

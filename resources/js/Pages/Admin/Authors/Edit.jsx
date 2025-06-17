@@ -11,6 +11,7 @@ export default function AuthorEdit({ auth, author }) {
         name: author.name || '',
         title: author.title || '',
         user_id: author.user_id || '',
+        avatar_url: author.avatar_url || '',
     });
 
     const handleSubmit = (e) => {
@@ -69,6 +70,23 @@ export default function AuthorEdit({ auth, author }) {
                                         <InputError message={errors.title} className="mt-2" />
                                         <p className="mt-1 text-sm text-gray-600">
                                             The title or role of this author (e.g., "Senior Writer", "Editor", "Guest Contributor")
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <InputLabel htmlFor="avatar_url" value="Avatar URL (Optional)" />
+                                        <TextInput
+                                            id="avatar_url"
+                                            type="url"
+                                            name="avatar_url"
+                                            value={data.avatar_url}
+                                            className="mt-1 block w-full"
+                                            onChange={(e) => setData('avatar_url', e.target.value)}
+                                            placeholder="https://example.com/avatar.jpg"
+                                        />
+                                        <InputError message={errors.avatar_url} className="mt-2" />
+                                        <p className="mt-1 text-sm text-gray-600">
+                                            Optional: URL to the author's profile picture
                                         </p>
                                     </div>
 
