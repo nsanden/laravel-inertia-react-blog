@@ -17,12 +17,20 @@ export default function BlogIndex({ auth, posts }) {
                         <div className="p-6 text-gray-900">
                             <div className="flex justify-between items-center mb-6">
                                 <h1 className="text-2xl font-bold">Blog Posts</h1>
-                                <Link
-                                    href={route('blog-admin.create')}
-                                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                                >
-                                    Create New Post
-                                </Link>
+                                <div className="flex gap-4">
+                                    <Link
+                                        href={route('blog-admin.authors.index')}
+                                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                                    >
+                                        Manage Authors
+                                    </Link>
+                                    <Link
+                                        href={route('blog-admin.create')}
+                                        className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                                    >
+                                        Create New Post
+                                    </Link>
+                                </div>
                             </div>
 
                             <div className="overflow-x-auto">
