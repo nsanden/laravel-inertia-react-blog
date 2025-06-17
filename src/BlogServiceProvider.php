@@ -26,5 +26,11 @@ class BlogServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../routes/web.php' => base_path('routes/blog.php'),
         ], 'laravel-inertia-react-blog-routes');
+
+        // Publish FontAwesome CSS and fonts
+        $this->publishes([
+            __DIR__.'/../node_modules/@fortawesome/fontawesome-free/css/all.min.css' => public_path('css/fontawesome.css'),
+            __DIR__.'/../node_modules/@fortawesome/fontawesome-free/webfonts' => public_path('webfonts'),
+        ], 'laravel-inertia-react-blog-fontawesome');
     }
 }
