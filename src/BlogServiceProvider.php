@@ -13,9 +13,6 @@ class BlogServiceProvider extends ServiceProvider
 
     public function boot()
     {
-        // Load routes
-        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
-        
         // Load migrations
         $this->loadMigrationsFrom(__DIR__.'/database/migrations');
         
@@ -24,5 +21,10 @@ class BlogServiceProvider extends ServiceProvider
             __DIR__.'/../resources/js/Pages' => resource_path('js/Pages/Blog'),
             __DIR__.'/../resources/js/Components' => resource_path('js/Components/Blog'),
         ], 'laravel-inertia-react-blog');
+
+        // Publish the routes file
+        $this->publishes([
+            __DIR__.'/../routes/web.php' => base_path('routes/blog.php'),
+        ], 'laravel-inertia-react-blog-routes');
     }
 }
