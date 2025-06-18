@@ -7,6 +7,7 @@ use NSanden\LaravelInertiaReactBlog\Models\BlogPost;
 use NSanden\LaravelInertiaReactBlog\Models\BlogAuthor;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Services\ChatGptService;
 
 class AdminBlogController extends Controller
 {
@@ -77,10 +78,14 @@ class AdminBlogController extends Controller
     {
         $authors = BlogAuthor::all();
 
-        return Inertia::render('Blog/Admin/Edit', [
-            'post' => $blogPost,
+        $response = Inertia::render('Blog/Admin/Edit', [
+            'post' => $blogPost->fresh(),  // Ensure fresh data from DB
             'authors' => $authors
         ]);
+
+        return $response->toResponse(request())
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
 
     public function update(Request $request, BlogPost $blogPost)
@@ -114,13 +119,88 @@ class AdminBlogController extends Controller
 
         $blogPost->update($validated);
 
-        return redirect()->route('blog-admin.index');
+        return redirect()->route('blog-admin.index')
+            ->with('success', 'Blog post updated successfully')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache');
     }
+
 
     public function destroy(BlogPost $blogPost)
     {
         $blogPost->delete();
 
         return redirect()->route('blog-admin.index');
+    }
+
+    public function modifyContent(Request $request)
+    {
+        $request->validate([
+            'content' => 'required|string',
+            'user_request' => 'required|string',
+            'title' => 'nullable|string',
+            'chat_history' => 'nullable|array',
+        ]);
+
+        try {
+            // Log the user request to see if context is included
+            \Log::info('Blog modify request', [
+                'user_request' => $request->input('user_request'),
+                'has_context' => str_contains($request->input('user_request'), 'Context:')
+            ]);
+
+            $chatGptService = new ChatGptService();
+            $result = $chatGptService->modifyBlogContent(
+                $request->input('content'),
+                $request->input('user_request'),
+                $request->input('title', ''),
+                $request->input('chat_history', [])
+            );
+
+            return response()->json([
+                'success' => true,
+                'content' => $result['content'],
+                'message' => $result['message'],
+                'isModification' => $result['isModification'],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to modify content. Please try again.',
+                'details' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function chatWithAI(Request $request)
+    {
+        $request->validate([
+            'message' => 'required|string',
+            'content' => 'nullable|string',
+            'title' => 'nullable|string',
+            'chat_history' => 'nullable|array',
+        ]);
+
+        try {
+            $chatGptService = new ChatGptService();
+            $result = $chatGptService->chatWithAI(
+                $request->input('message'),
+                $request->input('content', ''),
+                $request->input('title', ''),
+                $request->input('chat_history', [])
+            );
+
+            return response()->json([
+                'success' => true,
+                'response' => $result['response'],
+                'is_chat' => $result['is_chat'],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to chat with AI. Please try again.',
+                'details' => $e->getMessage(),
+            ], 500);
+        }
     }
 }
