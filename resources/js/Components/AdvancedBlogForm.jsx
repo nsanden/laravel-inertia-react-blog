@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import ImageSearchModal from '@/Components/Blog/ImageSearchModal';
 import MarkdownRenderer from '@/Components/Blog/MarkdownRenderer';
 import BlogHeader from '@/Components/Blog/BlogHeader';
+import ChatInterface from '@/Components/Blog/ChatInterface';
 
 export default function AdvancedBlogForm({ post = null, authors = [], onCancel }) {
     const isEditing = !!post;
@@ -38,6 +39,10 @@ export default function AdvancedBlogForm({ post = null, authors = [], onCancel }
     const [imageSearchOpen, setImageSearchOpen] = useState(false);
     const [contentImageSearchOpen, setContentImageSearchOpen] = useState(false);
     const [editingImageUrl, setEditingImageUrl] = useState(null);
+    const [editingImageIndex, setEditingImageIndex] = useState(null);
+    const [contentMode, setContentMode] = useState('chat'); // 'chat' or 'markdown'
+    const [showMoreOptions, setShowMoreOptions] = useState(false);
+    const [selectedText, setSelectedText] = useState('');
 
     const generateSlug = (title) => {
         return title
@@ -63,10 +68,25 @@ export default function AdvancedBlogForm({ post = null, authors = [], onCancel }
     const handleSubmit = (e) => {
         e.preventDefault();
         
+        const options = {
+            preserveScroll: false,
+            preserveState: false,
+            onSuccess: () => {
+                // Clear any cached Inertia pages
+                if (window.history && window.history.state) {
+                    // Force browser to not cache the previous page
+                    window.history.replaceState(
+                        { ...window.history.state, cache: false }, 
+                        ''
+                    );
+                }
+            }
+        };
+        
         if (isEditing) {
-            put(route('blog-admin.update', post));
+            put(route('blog-admin.update', post), options);
         } else {
-            submitPost(route('blog-admin.store'));
+            submitPost(route('blog-admin.store'), options);
         }
     };
 
@@ -80,12 +100,27 @@ export default function AdvancedBlogForm({ post = null, authors = [], onCancel }
     };
 
     const handleContentImageSelect = (image) => {
-        if (editingImageUrl) {
-            // Replace existing image
-            const oldImageRegex = new RegExp(`!\\[([^\\]]*)\\]\\(${editingImageUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`, 'g');
-            const newMarkdown = `![${image.alt}](${image.url})`;
-            setData('content', data.content.replace(oldImageRegex, newMarkdown));
+        if (editingImageUrl && editingImageIndex !== null) {
+            // Replace specific image by index
+            const imagePattern = /!\[([^\]]*)\]\(([^)]+)\)/g;
+            let imageCount = 0;
+            let replacementMade = false;
+            
+            let newContent = data.content.replace(imagePattern, (match, alt, url) => {
+                // Only process if we haven't made the replacement yet
+                if (!replacementMade) {
+                    if (imageCount === editingImageIndex) {
+                        replacementMade = true;
+                        return `![${image.alt}](${image.url})`;
+                    }
+                    imageCount++;
+                }
+                return match;
+            });
+            
+            setData('content', newContent);
             setEditingImageUrl(null);
+            setEditingImageIndex(null);
         } else {
             // Insert new image
             const markdownImage = `![${image.alt}](${image.url})`;
@@ -94,36 +129,77 @@ export default function AdvancedBlogForm({ post = null, authors = [], onCancel }
         setContentImageSearchOpen(false);
     };
 
-    const handlePreviewImageClick = (imageUrl) => {
+    const handlePreviewImageClick = (imageUrl, imageAlt, imageIndex) => {
         setEditingImageUrl(imageUrl);
+        setEditingImageIndex(imageIndex);
         setContentImageSearchOpen(true);
     };
 
-    const handlePreviewParagraphClick = (paragraphIndex) => {
-        const textarea = contentRef.current;
-        if (!textarea || !data.content) return;
-
-        // Split content the same way as in renderMarkdown to find the paragraph
-        const paragraphs = data.content.split('\n\n');
+    const removeImage = (imageIndex) => {
+        const imagePattern = /!\[([^\]]*)\]\(([^)]+)\)/g;
+        let imageCount = 0;
+        let replacementMade = false;
         
-        if (paragraphIndex >= paragraphs.length) return;
-
-        // Find the start and end positions of the target paragraph in the source
-        let startPos = 0;
-        for (let i = 0; i < paragraphIndex; i++) {
-            startPos += paragraphs[i].length + 2; // +2 for '\n\n'
-        }
+        let newContent = data.content.replace(imagePattern, (match, alt, url) => {
+            if (!replacementMade) {
+                if (imageCount === imageIndex) {
+                    replacementMade = true;
+                    return ''; // Remove the image by replacing with empty string
+                }
+                imageCount++;
+            }
+            return match;
+        });
         
-        const targetParagraph = paragraphs[paragraphIndex];
-        const endPos = startPos + targetParagraph.length;
-
-        // Select the paragraph in the textarea
-        textarea.focus();
-        textarea.setSelectionRange(startPos, endPos);
+        // Clean up any extra newlines that might be left
+        newContent = newContent.replace(/\n\n\n+/g, '\n\n');
         
-        // Scroll to make the selection visible
-        textarea.scrollTop = textarea.scrollHeight * (startPos / data.content.length) - textarea.clientHeight / 2;
+        setData('content', newContent);
+        setEditingImageUrl(null);
+        setEditingImageIndex(null);
+        setContentImageSearchOpen(false);
     };
+
+    const handleTextSelection = () => {
+        setTimeout(() => {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            if (selectedText && selectedText.length > 0) {
+                setSelectedText(selectedText);
+            } else {
+                // Clear selected text if nothing is selected
+                setSelectedText('');
+            }
+        }, 10);
+    };
+
+    const clearSelectedText = () => {
+        setSelectedText('');
+        window.getSelection().removeAllRanges();
+    };
+
+    // Only clear selection when clicking outside the preview and chat areas
+    useEffect(() => {
+        const handleDocumentClick = (e) => {
+            // Check if the click was outside both the preview and chat areas
+            const previewArea = e.target.closest('.preview-area');
+            const chatArea = e.target.closest('.chat-area');
+            
+            if (!previewArea && !chatArea && selectedText) {
+                // Only clear if there's no current text selection
+                const selection = window.getSelection();
+                if (!selection.toString().trim()) {
+                    setSelectedText('');
+                }
+            }
+        };
+
+        document.addEventListener('click', handleDocumentClick);
+        return () => {
+            document.removeEventListener('click', handleDocumentClick);
+        };
+    }, [selectedText]);
+
 
     const insertMarkdown = (before, after = '') => {
         const textarea = contentRef.current;
@@ -157,95 +233,14 @@ export default function AdvancedBlogForm({ post = null, authors = [], onCancel }
         { icon: 'fas fa-image', title: 'Search & Insert Image', action: () => setContentImageSearchOpen(true) },
     ];
 
-    const renderMarkdown = (text) => {
-        if (!text) return '';
-        
-        let html = text
-            // Headers
-            .replace(/^### (.*$)/gim, '<h3 style="font-size: 1.5rem; font-weight: 600; color: #1f2937; margin: 2.5rem 0 1rem 0; line-height: 1.4;">$1</h3>')
-            .replace(/^## (.*$)/gim, '<h2 style="font-size: 2rem; font-weight: 700; color: #1f2937; margin: 3rem 0 1.5rem 0; line-height: 1.3;">$1</h2>')
-            .replace(/^# (.*$)/gim, '<h1 style="font-size: 2.5rem; font-weight: 700; color: #1f2937; margin: 2rem 0 1.5rem 0; line-height: 1.2;">$1</h1>')
-            // Bold and italic
-            .replace(/\*\*([^*]+)\*\*/g, '<strong style="font-weight: 600; color: #1f2937;">$1</strong>')
-            .replace(/\*([^*]+)\*/g, '<em style="font-style: italic;">$1</em>')
-            // Images (must come before links since ![alt](url) contains [alt](url))
-            .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" data-image-url="$2" class="clickable-preview-image" style="width: 100%; height: auto; border-radius: 0.75rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); margin: 1.5rem auto; display: block; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;" onmouseover="this.style.transform=\'scale(1.02)\'; this.style.boxShadow=\'0 15px 30px -5px rgba(0, 0, 0, 0.15), 0 8px 12px -2px rgba(0, 0, 0, 0.1)\';" onmouseout="this.style.transform=\'scale(1)\'; this.style.boxShadow=\'0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)\';" />')
-            // Links
-            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color: #2563eb; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px;">$1</a>')
-            // Code blocks
-            .replace(/```([^`]*)```/g, '<pre style="background-color: #1e293b; color: #e2e8f0; padding: 1.5rem; border-radius: 0.75rem; overflow-x: auto; margin: 2rem 0; font-family: ui-monospace, SFMono-Regular, \'SF Mono\', Consolas, \'Liberation Mono\', Menlo, monospace;"><code>$1</code></pre>')
-            // Inline code
-            .replace(/`([^`]+)`/g, '<code style="background-color: #f1f5f9; color: #1e293b; padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-family: ui-monospace, SFMono-Regular, \'SF Mono\', Consolas, \'Liberation Mono\', Menlo, monospace; font-size: 0.875rem;">$1</code>')
-            // Blockquotes
-            .replace(/^> (.*$)/gim, '<blockquote style="border-left: 4px solid #3b82f6; padding: 1rem 0 1rem 2rem; margin: 2rem 0; font-style: italic; color: #6b7280; background-color: #f8fafc; border-radius: 0 0.5rem 0.5rem 0;">$1</blockquote>')
-            .split('\n')
-            .map(line => {
-                if (line.trim().startsWith('- ')) {
-                    return `<li style="margin-bottom: 0.75rem; color: #374151; line-height: 1.6;">${line.substring(2)}</li>`;
-                } else if (line.trim().match(/^\d+\. /)) {
-                    return `<li style="margin-bottom: 0.75rem; color: #374151; line-height: 1.6;">${line.replace(/^\d+\. /, '')}</li>`;
-                }
-                return line;
-            })
-            .join('\n')
-            .replace(/(<li style="[^"]*">.*<\/li>\n?)+/g, match => {
-                if (match.includes('- ')) {
-                    return `<ul style="margin: 1.5rem 0; padding-left: 2rem;">${match}</ul>`;
-                }
-                return `<ol style="margin: 1.5rem 0; padding-left: 2rem;">${match}</ol>`;
-            })
-            .split('\n\n')
-            .map((para, index) => {
-                if (!para.trim()) return '';
-                if (para.includes('<h1') || para.includes('<h2') || para.includes('<h3') || 
-                    para.includes('<ul') || para.includes('<ol') || para.includes('<blockquote') ||
-                    para.includes('<pre') || para.includes('<img')) {
-                    return para;
-                }
-                return `<p data-paragraph-index="${index}" class="clickable-preview-paragraph" style="font-size: 1.125rem; line-height: 1.75; color: #374151; margin-bottom: 0.5rem; cursor: pointer; padding: 0.5rem; margin-left: -0.5rem; margin-right: -0.5rem; border-radius: 0.375rem; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='#f8fafc';" onmouseout="this.style.backgroundColor='transparent';">${para}</p>`;
-            })
-            .join('\n');
-            
-        return html;
-    };
 
-    // Handle clicks on preview images and paragraphs
-    useEffect(() => {
-        const handlePreviewClick = (e) => {
-            // Handle image clicks
-            if (e.target.classList.contains('clickable-preview-image')) {
-                e.preventDefault();
-                const imageUrl = e.target.getAttribute('data-image-url');
-                if (imageUrl) {
-                    handlePreviewImageClick(imageUrl);
-                }
-                return;
-            }
-            
-            // Handle paragraph clicks
-            if (e.target.classList.contains('clickable-preview-paragraph')) {
-                e.preventDefault();
-                const paragraphIndex = parseInt(e.target.getAttribute('data-paragraph-index'));
-                if (!isNaN(paragraphIndex)) {
-                    handlePreviewParagraphClick(paragraphIndex);
-                }
-                return;
-            }
-        };
-
-        // Add event listener to document to catch dynamically rendered elements
-        document.addEventListener('click', handlePreviewClick);
-
-        return () => {
-            document.removeEventListener('click', handlePreviewClick);
-        };
-    }, [data.content]);
 
     return (
-        <div className="flex gap-6">
+        <div className="flex gap-6 min-h-screen">
             {/* Form Column */}
-            <div className="flex-1">
-                <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
+            <div className="flex-1 max-w-3xl">
+                <div className="sticky top-8 max-h-[calc(100vh-4rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style={{ scrollBehavior: 'auto' }}>
+                    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-lg p-8 space-y-6">
                     {/* Title */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Title</label>
@@ -260,137 +255,197 @@ export default function AdvancedBlogForm({ post = null, authors = [], onCancel }
                         {errors.slug && <div className="text-red-600 text-sm mt-1">{errors.slug}</div>}
                     </div>
 
-                    {/* Content */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Content (Markdown supported)</label>
-                        <div className="mt-1 border border-gray-300 rounded-md overflow-hidden">
-                            <div className="bg-gray-50 border-b border-gray-300 p-2 flex flex-wrap gap-1">
-                                {markdownButtons.map((button, index) => (
-                                    <button
-                                        key={index}
-                                        type="button"
-                                        onClick={button.action}
-                                        className="px-3 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors"
-                                        title={button.title}
-                                    >
-                                        {button.label ? (
-                                            <span className="font-semibold">{button.label}</span>
-                                        ) : (
-                                            <i className={button.icon}></i>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                            <textarea
-                                ref={contentRef}
-                                value={data.content}
-                                onChange={(e) => setData('content', e.target.value)}
-                                className="w-full p-3 font-mono text-sm border-0 focus:ring-0"
-                                rows={15}
-                                required
-                            />
-                        </div>
-                        {errors.content && <div className="text-red-600 text-sm mt-1">{errors.content}</div>}
-                    </div>
-
-                    {/* Excerpt */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Excerpt</label>
-                        <textarea
-                            value={data.excerpt}
-                            onChange={(e) => setData('excerpt', e.target.value)}
-                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                            rows={3}
-                        />
-                        {errors.excerpt && <div className="text-red-600 text-sm mt-1">{errors.excerpt}</div>}
-                    </div>
-
-                    {/* Featured Image */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">Featured Image URL</label>
-                        <div className="flex gap-2 mt-1">
-                            <input
-                                type="url"
-                                value={data.featured_image}
-                                onChange={(e) => setData('featured_image', e.target.value)}
-                                className="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                                placeholder="https://example.com/image.jpg"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setImageSearchOpen(true)}
-                                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition whitespace-nowrap"
-                            >
-                                <i className="fas fa-search mr-2"></i>
-                                Search Images
-                            </button>
-                        </div>
-                        {errors.featured_image && <div className="text-red-600 text-sm mt-1">{errors.featured_image}</div>}
-                        {data.featured_image && (
-                            <div className="mt-3">
-                                <img
-                                    src={data.featured_image}
-                                    alt="Featured image preview"
-                                    className="w-32 h-32 object-cover rounded-lg border"
-                                    onError={(e) => {
-                                        e.target.style.display = 'none';
-                                    }}
-                                />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Author Selection */}
-                    <div className="border-t pt-6">
-                        <h3 className="text-lg font-semibold mb-4">Author</h3>
+                    {/* Content - Hide when More Options is shown */}
+                    {!showMoreOptions && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Select Author</label>
-                            <select
-                                value={data.author_id}
-                                onChange={(e) => setData('author_id', e.target.value)}
-                                className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                required
-                            >
-                                <option value="">Select an author...</option>
-                                {authors?.map((author) => (
-                                    <option key={author.id} value={author.id}>
-                                        {author.name} - {author.title}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.author_id && <div className="text-red-600 text-sm mt-1">{errors.author_id}</div>}
+                            <div className="flex justify-between items-center mb-3">
+                                <label className="block text-sm font-medium text-gray-700">Content</label>
+                                <div className="flex rounded-lg border border-gray-300 bg-gray-50 p-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setContentMode('chat')}
+                                        className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                                            contentMode === 'chat'
+                                                ? 'bg-white text-gray-900 shadow-sm'
+                                                : 'text-gray-600 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        <i className="fas fa-comments mr-2"></i>
+                                        AI Chat
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setContentMode('markdown')}
+                                        className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                                            contentMode === 'markdown'
+                                                ? 'bg-white text-gray-900 shadow-sm'
+                                                : 'text-gray-600 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        <i className="fas fa-code mr-2"></i>
+                                        Markdown
+                                    </button>
+                                </div>
+                            </div>
+
+                            {contentMode === 'chat' ? (
+                                <div className="chat-area">
+                                    <ChatInterface 
+                                        content={data.content}
+                                        onContentChange={(newContent) => setData('content', newContent)}
+                                        title={data.title}
+                                        selectedText={selectedText}
+                                        onClearSelectedText={clearSelectedText}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="border border-gray-300 rounded-md overflow-hidden">
+                                    <div className="bg-gray-50 border-b border-gray-300 p-2 flex flex-wrap gap-1">
+                                        {markdownButtons.map((button, index) => (
+                                            <button
+                                                key={index}
+                                                type="button"
+                                                onClick={button.action}
+                                                className="px-3 py-1 text-sm bg-white border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+                                                title={button.title}
+                                            >
+                                                {button.label ? (
+                                                    <span className="font-semibold">{button.label}</span>
+                                                ) : (
+                                                    <i className={button.icon}></i>
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <textarea
+                                        ref={contentRef}
+                                        value={data.content}
+                                        onChange={(e) => setData('content', e.target.value)}
+                                        className="w-full p-3 font-mono text-sm border-0 focus:ring-0"
+                                        rows={15}
+                                        required
+                                    />
+                                </div>
+                            )}
+                            {errors.content && <div className="text-red-600 text-sm mt-1">{errors.content}</div>}
                         </div>
+                    )}
+
+                    {/* More Options Toggle */}
+                    <div className="border-t pt-6">
+                        <button
+                            type="button"
+                            onClick={() => setShowMoreOptions(!showMoreOptions)}
+                            className="flex items-center justify-between w-full text-left"
+                        >
+                            <span className="text-lg font-semibold text-gray-900">More Options</span>
+                            <i className={`fas fa-chevron-${showMoreOptions ? 'up' : 'down'} text-gray-400`}></i>
+                        </button>
                     </div>
 
-                    {/* Publishing Options */}
-                    <div className="border-t pt-6">
-                        <h3 className="text-lg font-semibold mb-4">Publishing Options</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Collapsible Options */}
+                    {showMoreOptions && (
+                        <div className="space-y-6">
+                            {/* Excerpt */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">Status</label>
-                                <select
-                                    value={data.status}
-                                    onChange={(e) => setData('status', e.target.value)}
-                                    className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
-                                >
-                                    <option value="draft">Draft</option>
-                                    <option value="published">Published</option>
-                                </select>
-                                {errors.status && <div className="text-red-600 text-sm mt-1">{errors.status}</div>}
-                            </div>
-                            
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Publish Date</label>
-                                <input
-                                    type="datetime-local"
-                                    value={data.published_at}
-                                    onChange={handlePublishDateChange}
-                                    className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                <label className="block text-sm font-medium text-gray-700">Excerpt</label>
+                                <textarea
+                                    value={data.excerpt}
+                                    onChange={(e) => setData('excerpt', e.target.value)}
+                                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    rows={3}
                                 />
-                                {errors.published_at && <div className="text-red-600 text-sm mt-1">{errors.published_at}</div>}
+                                {errors.excerpt && <div className="text-red-600 text-sm mt-1">{errors.excerpt}</div>}
+                            </div>
+
+                            {/* Featured Image */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Featured Image URL</label>
+                                <div className="flex gap-2 mt-1">
+                                    <input
+                                        type="url"
+                                        value={data.featured_image}
+                                        onChange={(e) => setData('featured_image', e.target.value)}
+                                        className="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="https://example.com/image.jpg"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setImageSearchOpen(true)}
+                                        className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition whitespace-nowrap"
+                                    >
+                                        <i className="fas fa-search mr-2"></i>
+                                        Search Images
+                                    </button>
+                                </div>
+                                {errors.featured_image && <div className="text-red-600 text-sm mt-1">{errors.featured_image}</div>}
+                                {data.featured_image && (
+                                    <div className="mt-3">
+                                        <img
+                                            src={data.featured_image}
+                                            alt="Featured image preview"
+                                            className="w-32 h-32 object-cover rounded-lg border"
+                                            onError={(e) => {
+                                                e.target.style.display = 'none';
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Author Selection */}
+                            <div className="border-t pt-6">
+                                <h3 className="text-lg font-semibold mb-4">Author</h3>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Select Author</label>
+                                    <select
+                                        value={data.author_id}
+                                        onChange={(e) => setData('author_id', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                        required
+                                    >
+                                        <option value="">Select an author...</option>
+                                        {authors?.map((author) => (
+                                            <option key={author.id} value={author.id}>
+                                                {author.name} - {author.title}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {errors.author_id && <div className="text-red-600 text-sm mt-1">{errors.author_id}</div>}
+                                </div>
+                            </div>
+
+                            {/* Publishing Options */}
+                            <div className="border-t pt-6">
+                                <h3 className="text-lg font-semibold mb-4">Publishing Options</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Status</label>
+                                        <select
+                                            value={data.status}
+                                            onChange={(e) => setData('status', e.target.value)}
+                                            className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                        >
+                                            <option value="draft">Draft</option>
+                                            <option value="published">Published</option>
+                                        </select>
+                                        {errors.status && <div className="text-red-600 text-sm mt-1">{errors.status}</div>}
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">Publish Date</label>
+                                        <input
+                                            type="datetime-local"
+                                            value={data.published_at}
+                                            onChange={handlePublishDateChange}
+                                            className="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                                        />
+                                        {errors.published_at && <div className="text-red-600 text-sm mt-1">{errors.published_at}</div>}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Submit Buttons */}
                     <div className="flex items-center justify-end gap-4 pt-6 border-t">
@@ -409,32 +464,55 @@ export default function AdvancedBlogForm({ post = null, authors = [], onCancel }
                             {processing ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Blog Post' : 'Create Blog Post')}
                         </button>
                     </div>
-                </form>
+                    </form>
+                </div>
             </div>
             
             {/* Preview Column */}
             <div className="flex-1">
-                <div className="bg-white rounded-lg shadow-lg p-8 sticky top-8">
-                    <BlogHeader
-                        title={data.title || 'Blog Post Title'}
-                        subtitle=""
-                        author={authors?.find(author => author.id == data.author_id) || { name: 'Author' }}
-                        publishedAt={data.published_at}
-                        featuredImage={data.featured_image}
-                        showFeaturedImage={true}
-                    />
+                <div className="bg-white rounded-lg shadow-lg">
+                    {/* Header Section - full width background */}
+                    <div className="bg-gradient-to-r from-indigo-50 to-blue-100 rounded-t-lg py-12">
+                        <div className="max-w-4xl mx-auto px-8">
+                            <BlogHeader
+                                title={data.title || 'Blog Post Title'}
+                                subtitle=""
+                                author={authors?.find(author => author.id == data.author_id) || { name: 'Author' }}
+                                publishedAt={data.published_at}
+                                featuredImage={data.featured_image}
+                                showFeaturedImage={true}
+                            />
+                            
+                            {data.status === 'draft' && (
+                                <div className="text-center mt-4">
+                                    <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                        DRAFT
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                     
-                    {data.status === 'draft' && (
-                        <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full mb-6">
-                            DRAFT
-                        </span>
-                    )}
-                    
-                    {data.content ? (
-                        <MarkdownRenderer content={data.content} />
-                    ) : (
-                        <p className="text-gray-400">Start typing to see preview...</p>
-                    )}
+                    {/* Content Section - constrained width */}
+                    <div className="p-8">
+                        <div className="max-w-4xl mx-auto">
+                            {data.content ? (
+                                <div 
+                                    className="preview-area"
+                                    onMouseUp={handleTextSelection}
+                                    onClick={handleTextSelection}
+                                    onKeyUp={handleTextSelection}
+                                >
+                                    <MarkdownRenderer 
+                                        content={data.content} 
+                                        onImageClick={handlePreviewImageClick}
+                                    />
+                                </div>
+                            ) : (
+                                <p className="text-gray-400 text-center">Start typing to see preview...</p>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -452,8 +530,10 @@ export default function AdvancedBlogForm({ post = null, authors = [], onCancel }
                 onClose={() => {
                     setContentImageSearchOpen(false);
                     setEditingImageUrl(null);
+                    setEditingImageIndex(null);
                 }}
                 onSelectImage={handleContentImageSelect}
+                onRemoveImage={editingImageUrl ? () => removeImage(editingImageIndex) : null}
                 title={editingImageUrl ? "Replace Image" : "Search & Insert Image"}
             />
         </div>

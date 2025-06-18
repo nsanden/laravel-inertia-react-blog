@@ -1,7 +1,13 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useRef } from 'react';
 
-export default function MarkdownRenderer({ content, className = "" }) {
+export default function MarkdownRenderer({ content, className = "", onImageClick = null }) {
+    const imageIndexRef = useRef(0);
+    
+    // Reset counter when content changes
+    imageIndexRef.current = 0;
+    
     return (
         <div className={`prose prose-lg max-w-none 
             prose-headings:text-gray-900 prose-headings:font-bold prose-headings:tracking-tight
@@ -22,12 +28,16 @@ export default function MarkdownRenderer({ content, className = "" }) {
             <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                    img: ({node, ...props}) => (
-                        <img
-                            className="w-full h-auto rounded-xl shadow-xl my-6"
-                            {...props}
-                        />
-                    ),
+                    img: ({node, ...props}) => {
+                        const currentIndex = imageIndexRef.current++;
+                        return (
+                            <img
+                                className={`w-full max-h-[48rem] object-cover rounded-xl shadow-xl my-6 ${onImageClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                                onClick={onImageClick ? () => onImageClick(props.src, props.alt, currentIndex) : undefined}
+                                {...props}
+                            />
+                        );
+                    },
                     code: ({node, inline, className, children, ...props}) => {
                         if (inline) {
                             return (

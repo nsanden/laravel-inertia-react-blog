@@ -8,7 +8,11 @@ export default function BlogEdit({ auth, post, authors }) {
         <BlogLayout>
             <AuthenticatedLayout
                 user={auth.user}
-                header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Edit Blog Post</h2>}
+                header={
+                    <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+                        Edit Blog Post
+                    </h2>
+                }
             >
                 <Head title="Edit Blog Post" />
 

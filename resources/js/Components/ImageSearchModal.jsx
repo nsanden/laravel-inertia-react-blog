@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function ImageSearchModal({ isOpen, onClose, onSelectImage, title = "Search Images" }) {
+export default function ImageSearchModal({ isOpen, onClose, onSelectImage, onRemoveImage = null, title = "Search Images" }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [images, setImages] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -124,7 +124,21 @@ export default function ImageSearchModal({ isOpen, onClose, onSelectImage, title
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+                    <div className="flex items-center gap-4">
+                        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+                        {onRemoveImage && (
+                            <button
+                                onClick={() => {
+                                    onRemoveImage();
+                                    onClose();
+                                }}
+                                className="px-3 py-1 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors"
+                            >
+                                <i className="fas fa-trash mr-2"></i>
+                                Remove Image
+                            </button>
+                        )}
+                    </div>
                     <button
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-600 transition-colors"
